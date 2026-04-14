@@ -15,3 +15,6 @@ package-lock.json
 
 # IDE
 .vscode/
+
+# Documentation
+CONTRIBUTING.md
