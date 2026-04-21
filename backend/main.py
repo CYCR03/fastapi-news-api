@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routers import news
+from routers import news, users
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
@@ -22,7 +22,10 @@ app.add_middleware(
 async def root():
     return {"message":"你好"}
 
+# 注册新闻模块路由
 app.include_router(news.router)
+# 注册用户模块路由
+app.include_router(users.router)
 
 if __name__ == "__main__":
     import uvicorn
