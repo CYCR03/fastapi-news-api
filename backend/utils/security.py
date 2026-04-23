@@ -2,7 +2,7 @@ from passlib.context import CryptContext
 
 # 创建加密上下文
 pwd_context = CryptContext(
-    schemes=["argon2", "bcrypt"],   # 密码加密算法
+    schemes=["argon2", "bcrypt"],             # 密码加密算法
     default= "argon2",              # 默认加密算法
     deprecated="auto"               # 自动兼容旧密码
     )
@@ -10,3 +10,9 @@ pwd_context = CryptContext(
 # 密码加密
 def hash_password(password: str):
     return pwd_context.hash(password)
+
+# 密码验证
+def verify_password(plain_password: str, hashed_password: str):
+    # plain_password: 明文密码
+    # hashed_password: 密文密码
+    return pwd_context.verify(plain_password, hashed_password)
