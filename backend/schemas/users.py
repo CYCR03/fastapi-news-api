@@ -29,7 +29,7 @@ class UserAuthResponse(BaseModel):
 
     model_config = ConfigDict(
         populate_by_name = True,    # 允许使用原本的属性名以及字段别名
-        from_attributes = True,     # 允许从ORM对象中获取属性值（原本默认为True，既通过接收字典获取属性值）
+        from_attributes = True,     # 允许从ORM对象中获取属性值（原本默认为False，既通过接收字典获取属性值）
     )
 
 # 用户更新请求类

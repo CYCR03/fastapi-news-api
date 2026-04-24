@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routers import news, users
+from routers import news, users, favorite 
 from fastapi.middleware.cors import CORSMiddleware
 
 from utils.exception_hendlers import register_exception_handlers 
@@ -31,6 +31,8 @@ async def root():
 app.include_router(news.router)
 # 注册用户模块路由
 app.include_router(users.router)
+# 注册收藏模块路由
+app.include_router(favorite.router)
 
 if __name__ == "__main__":
     import uvicorn
