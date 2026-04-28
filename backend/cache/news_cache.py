@@ -6,13 +6,14 @@ from config.redis_config import get_cache_json, set_cache
 
 CATEGORIES_KEY = "news:categories"
 NEWS_LIST_PREFIX = "news:list:"
+NEWS_DETAIL_PREFIX = "news:detail:"
 
 # 获取新闻分类缓存
 async def get_cache_categories():
     return await get_cache_json(CATEGORIES_KEY)
 
 # 写入新闻分类缓存（数越稳定，则缓存时间越长） 
-# 分类、配置: 7200，列表: 600，详情: 1800，验证码：120
+# 分类、配置: 7200，列表: 600，详情: 180，验证码：120
 async def set_cache_categories(
     data: List[Dict[str, Any]], 
     expire: int = 7200
@@ -50,3 +51,15 @@ async def get_cache_news_list(
         category_id = str(category_id)
     key = NEWS_LIST_PREFIX + category_id + f":{page}:{page_size}"
     return await get_cache_json(key)
+
+
+# 获取新闻详情缓存
+async def get_cache_news_detail(news_id: int):
+    key = NEWS_DETAIL_PREFIX + str(news_id)
+    return await get_cache_json(key)
+
+
+# 写入新闻详情缓存
+async def set_cache_news_detail(news_id: int, data: dict, expire: int = 1800):
+    key = NEWS_DETAIL_PREFIX + str(news_id)
+    return await set_cache(key, data, expire)

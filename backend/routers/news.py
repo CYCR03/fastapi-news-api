@@ -15,7 +15,9 @@ from cache.news_cache import (
     get_cache_categories,
     set_cache_categories,
     get_cache_news_list,
-    set_cache_news_list
+    set_cache_news_list,
+    get_cache_news_detail,
+    set_cache_news_detail
 )
 from schemas.news import NewsResponseBase 
 
@@ -88,33 +90,43 @@ async def get_news_detail(
     news_id: int = Query(..., alias='id'), 
     db:AsyncSession = Depends(get_db)
 ):
-    # 获取新闻详情 + 浏览量+1 + 获取相关新闻
+    # 先查询缓存
+    news_data = await get_cache_news_detail(news_id=news_id)
 
-    news = await get_news_detail_curd(db=db, news_id=news_id)
-    # 新闻不存在则抛出异常
-    if news is None:
-        raise HTTPException(status_code=404, detail="新闻不存在")
+    # 如果缓存不存在，则查询数据库
+    if news_data is None:  
+        # 获取新闻详情 + 浏览量+1 + 获取相关新闻
+        detail = await get_news_detail_curd(db=db, news_id=news_id)
+        if detail is None:
+            raise HTTPException(status_code=404, detail="新闻不存在")
 
-    # 新闻浏览量加1
-    views_res = await increase_views_curd(db=db, news_id=news_id)
-    if views_res is None:
-        raise HTTPException(status_code=500, detail="新闻浏览量更新失败")
-    
-    # 获取相关新闻
-    related_news = await get_related_news_curd(db=db, news_id=news_id, category_id=news.category_id)
+        # 新闻浏览量加1
+        views_res = await increase_views_curd(db=db, news_id=news_id)
+        if views_res is None:
+            raise HTTPException(status_code=500, detail="新闻浏览量更新失败")
+
+        # 获取相关新闻
+        related_news = await get_related_news_curd(db=db, news_id=news_id, category_id=detail.category_id)
+
+        # 组装数据
+        news_data = {
+            'id': detail.id,
+            'title': detail.title,
+            'content': detail.content,
+            'image': detail.image,
+            'author': detail.author,
+            'publishTime': detail.publish_time,
+            'categoryId': detail.category_id,
+            'views': detail.views,
+            'relatedNews': related_news
+        }
+
+        # 写入缓存
+        cache_data = jsonable_encoder(news_data)
+        await set_cache_news_detail(news_id=news_id, data=cache_data)
 
     return {
         "code" : 200,
         "message" : "获取新闻详情成功",
-        "data" :{
-            'id': news.id,
-            'title': news.title,
-            'content': news.content,
-            'image': news.image,
-            'author': news.author,
-            'publishTime': news.publish_time,
-            'categoryId': news.category_id,
-            'views': news.views,
-            'relatedNews': related_news
-        }
+        "data" : news_data
     }
